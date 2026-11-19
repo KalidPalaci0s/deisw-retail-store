@@ -70,5 +70,33 @@ pipeline {
                 }
             }
         }
+
+        stage('Docker Build') {
+            steps {
+                sh 'docker build -t kalidpalacios/retail-store-u201913639:latest .'
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-pc2',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_TOKEN'
+                )]) {
+                    sh '''
+                        set +x
+                        export DOCKER_CONFIG="$(mktemp -d)"
+                        trap 'rm -rf "$DOCKER_CONFIG"' EXIT
+
+                        printf '%s' "$DOCKER_TOKEN" |
+                          docker login --username "$DOCKER_USER" --password-stdin
+
+                        docker push kalidpalacios/retail-store-u201913639:latest
+                    '''
+                }
+            }
+        }
+
     }
 }

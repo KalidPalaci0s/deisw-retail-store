@@ -86,6 +86,8 @@ pipeline {
                 )]) {
                     sh '''
                         set +x
+                        export DOCKER_HOST="$(docker context inspect desktop-linux --format '{{ .Endpoints.docker.Host }}')"
+                        unset DOCKER_CONTEXT
                         export DOCKER_CONFIG="$(mktemp -d)"
                         trap 'rm -rf "$DOCKER_CONFIG"' EXIT
 

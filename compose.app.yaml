@@ -1,0 +1,38 @@
+name: pc2-retail-u201913639
+
+services:
+  retail-db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: retail_store
+      POSTGRES_USER: retail_user
+      POSTGRES_PASSWORD: ${RETAIL_DB_PASSWORD:?Password required}
+    volumes:
+      - retail_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U retail_user -d retail_store"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  retail-app:
+    image: retail-store-u201913639:local
+    build: .
+    restart: unless-stopped
+    depends_on:
+      retail-db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DB_HOST: retail-db
+      DB_PORT: 5432
+      DB_NAME: retail_store
+      DB_USERNAME: retail_user
+      DB_PASSWORD: ${RETAIL_DB_PASSWORD:?Password required}
+      PORT: 8096
+    ports:
+      - "127.0.0.1:8096:8096"
+
+volumes:
+  retail_db_data:
